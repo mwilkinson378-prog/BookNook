@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Tracker</title>
+    <link rel="stylesheet" href="stylesheet/indexcss.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+</head>
+<body class="search">
+
+<!-- Hero -->
+<header class="search-hero-banner">
+  <button class="back-btn" onclick="history.back()">
+    &larr;
+  </button>
+  
+  <h1>Find your next book to read.</h1>
+
+  <div class="search-container">
+    <img src="icon/search.svg" class="icon-left" alt="search">
+    <input type="text" id="search-bar" class="search-bar" placeholder="Search For a Book...">
+  </div>
+</header>
+
+<main class="main-content-wrapper">
+    
+  <div id="book-display" class="book-grid"></div>
+    
+  <button class="next-page-btn" id="next-page-btn" style="display:none;">Load More</button>
+
+   <div id="recent-searches-screen" class="recent-searches-screen">
+        <div class="recent-screen-header">
+            <h2>Recently Searched</h2>
+            <button id="clear-recents-btn" class="clear-recents-btn">Clear History</button>
+        </div>
+        <div id="recent-books-grid" class="book-grid">
+        </div>
+    </div>
+
+    <!--  searching) -->
+    <div id="book-display-results" class="book-grid" style="display: none;"></div>
+    
+    <button class="next-page-btn" id="next-page-btn-results" style="display:none;">Load More</button>
+
+ <!-- Popup Overlay -->
+ <div id="bookinfo-popup-overlay" class="modal-overlay" style="display: none;">
+  <div class="modal-content">
+    
+    <!-- Hero Container -->
+    <div class="hero-container">
+        <button class="nav-btn hero-back-btn" id="close-popup-btn" onclick="closeBookPopup()">
+            &larr;
+        </button>
+        <img id="backdrop-img" class="backdrop" src="" alt="">
+        <img id="book-cover" class="main-cover" src="" alt="Book Cover">
+    </div>
+
+    <!--   Wrapper -->
+    <div class="details-wrapper">
+        <h1 id="book-title"></h1>
+        <p id="book-author"></p>
+        
+        <div class="tags-container">
+            <span id="book-genre" class="tag"></span>
+            <span id="book-pages" class="tag"></span>
+        </div>
+
+        <div id="default-info-sections">
+            <div class="rating-section">
+                <p class="rating-label">GOOGLE RATING</p>
+                <div class="rating-display">
+                    <div id="star-container" class="stars"></div>
+                    <span id="rating-value" class="rating-value"></span>
+                    <span id="rating-count" class="rating-count"></span>
+                </div>
+            </div>
+
+            <div class="about-section">
+                <h3>About this book</h3>
+                <p id="book-bio">Loading description...</p>
+                <button id="read-more-btn" class="read-more-btn">Read More</button>
+            </div>
+
+            <div class="bottom-navbookinfo">
+                <button class="btn-library">Add to Library</button>
+                <button class="btn-current">Add to Current Read</button>
+            </div>
+        </div>
+
+        <!--  Modal View -->
+        <div id="currentReadModal" style="display: none;">
+            <hr class="modal-divider">
+            
+            <div class="modal-category-group">
+                <label class="modal-label">Select Categories:</label>
+                <div id="category-pills-container" class="category-pills-flex">
+                    <button type="button" class="category-pill active" data-category="To-Read">To-Read</button>
+                    <button type="button" class="category-pill" data-category="Current Read">Current Read</button>
+                    <button type="button" class="category-pill" data-category="Finished">Finished</button>
+                    <button type="button" class="category-pill" data-category="DNF">DNF</button>
+                </div>
+            </div>
+
+            <div id="current-progress-container" style="display: none;" class="modal-progress-group">
+                <label for="current-pages-read-input" class="modal-label">Pages Read So Far:</label>
+                <input type="number" id="current-pages-read-input" min="0" class="category-dropdown-select modal-input-field" placeholder="e.g. 50">
+                
+                <div class="modal-total-pages-text">
+                    Total Book Pages: <span id="modal-total-pages-display">0</span>
+                </div>
+            </div>
+
+            <div class="modal-actions">
+                <button type="button" id="current-confirm-btn">Confirm & Save</button>
+                <button type="button" id="current-cancel-btn">Cancel</button>
+            </div>
+        </div>
+
+    </div>
+
+  </div>
+
+</div>
+
+</main>
+<script src="search.js"></script>
+<script src="bookinfo.js"></script>
+<script src="gif.js"></script>
+<script src="https://unpkg.com/html5-qrcode"></script>
+</body>
+</html>

@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Sign In | Reading Companion</title>
+
+    <link rel="stylesheet" href="stylesheet/home.css">
+</head>
+
+<body class="login">
+    <main class="login-page">
+        <!-- LEFT SIDE -->
+        <section class="login-left">
+            <div class="login-logo">
+                <img src="media/navanimation.gif" alt="Reading Companion">
+            </div>
+            <h1>Reading Companion</h1>
+            <p>
+                Keep track of your books, discover new reads, set reading goals, and make your reading journey your own.
+            </p>
+        </section>
+
+        <!-- RIGHT SIDE -->
+        <section class="login-right">
+            <div class="login-box">
+                <h2 id="form-title">
+                    Welcome back
+                </h2>
+
+                <p class="login-subtitle" id="form-subtitle" >
+                    Sign in to continue to your library.
+                </p>
+                <!-- LOGIN FORM -->
+                <form id="login-form">
+                    
+                    <div class="form-group" id="name-group" style="display: none;"> <label for="name">
+                   Name
+                  </label>
+                     <input type="text" id="name" placeholder="Enter your first name" autocomplete="name" >
+                    </div>
+                    <!-- EMAIL -->
+                    <div class="form-group">
+                        <label for="email">
+                            Email
+                        </label>
+                        <input type="email" id="email" placeholder="Enter your email" autocomplete="email" required >
+                    </div>
+                    <!-- PASSWORD -->
+                    <div class="form-group">
+                        <label for="password">
+                            Password
+                        </label>
+                        <input type="password" id="password" placeholder="Enter your password" autocomplete="current-password" required></div>
+                    <!-- SUBMIT -->
+                    <button type="submit" class="login-button" id="submit-button">
+                        Sign In
+                    </button>
+                    <!-- ERROR MESSAGE -->
+                    <div class="login-message" id="login-message"></div>
+                </form>
+                <!-- CREATE ACCOUNT -->
+
+                <div class="signup-text">
+                    <span id="switch-text">
+                        Don't have an account?
+                    </span>
+                    <button type="button" id="switch-button">
+                     Create one
+                    </button>
+                </div>
+                <!-- GUEST LOGIN -->
+                <div class="guest-login">
+                    <button type="button" id="guest-button">
+                        Continue as Guest
+                    </button>
+                </div>
+            </div>
+        </section>
+    </main>
+    <script src="login.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

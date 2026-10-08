@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Tracker</title>
+    <link rel="stylesheet" href="stylesheet/indexcss.css">
+   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+</head>
+<body class="bodyshelf">
+    
+     <div class="flex">
+    <!-- Left-Hand Desktop Navigation Sidebar -->
+    <aside class="desktop-sidebar">
+        <div class="sidebar-top">
+            <a href="#" class="sidebar-brand">
+                <div class="brand-icon-box"><img src="media/navanimation.gif" alt="" class="sidebar-icon-top"></div>
+                <div class="brand-texts">
+                    <h2>Dashboard</h2>
+                    <span>Reading Companion</span>
+                </div>
+
+            </a>
+             <nav class="sidebar-nav">
+                <a href="home.html" class="sidebar-item">
+                <img src="icon/house.svg" alt="" class="sidebar-icon"> Home
+            </a>
+               <a href="library.html" class="sidebar-item">
+                <img src="icon/library.svg" alt="" class="sidebar-icon"> Library
+            </a>
+            <a href="goals.html" class="sidebar-item">
+                <img src="icon/goal.svg" alt="" class="sidebar-icon"> Goals
+            </a>
+            <a href="statistics.html" class="sidebar-item">
+                <img src="icon/stats.svg" alt="" class="sidebar-icon"> Statistics
+            </a>
+            <a href="book-recommendations/recommendation.html" class="sidebar-item">
+                <img src="icon/ai.svg" alt="" class="sidebar-icon"> Ask AI
+            </a>
+             </nav>
+           <div class="sidebar-footer">
+    <a href="index.html" class="sidebar-signout" id="signout-button">
+    <img src="icon/logout.svg" alt="Sign out">
+    <span>Sign Out</span>
+</a>
+</div>
+        </div>
+    </aside>
+   
+    <!-- TABLET SIDEBAR -->
+    <aside class="tablet-sidebar">
+    <div>
+        <nav class="sidebar-nav">
+            <a href="home.html" class="sidebar-item active">
+                <img src="icon/homeactive.svg" alt="" class="sidebar-icon"> 
+            </a>
+               <a href="library.html" class="sidebar-item">
+                <img src="icon/library.svg" alt="" class="sidebar-icon"> 
+            </a>
+            <a href="goals.html" class="sidebar-item">
+                <img src="icon/goal.svg" alt="" class="sidebar-icon"> 
+            </a>
+            <a href="statistics.html" class="sidebar-item">
+                <img src="icon/stats.svg" alt="" class="sidebar-icon"> 
+            </a>
+             <a href="book-recommendations/recommendation.html" class="sidebar-item">
+                <img src="icon/ai.svg" alt="" class="sidebar-icon"> 
+            </a>
+            
+        </nav>
+    </div>
+    <div class="sidebar-footer">
+         <a href="index.html" class="sidebar-signout" id="signout-button">
+    <img src="icon/logout.svg" alt="Sign out">
+</a>
+    </div>
+</aside>
+    <!-- Main Content -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="app-header">
+            <div class="header-left">
+                <a href="home.html" class="back-btn" aria-label="Go back">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+                </a>
+            </div>
+            
+            <div class="header-title-area">
+                <h1>My BookShelf</h1>
+            </div>
+
+            <div class="header-actions">
+                
+                <button class="decor-btn" id="decor-toggle-btn">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M4 5a1 1 0 011-1h14a1 1 0 011 1v2a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM4 13a1 1 0 011-1h6a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1v-6zM16 13a1 1 0 011-1h2a1 1 0 011 1v6a1 1 0 01-1 1h-2a1 1 0 01-1-1v-6z"/></svg>
+                    Décor
+                </button>
+            </div>
+        </header>
+
+        <!-- Navigation Tabs -->
+        <nav class="nav-tabs" id="nav-tabs">
+            <button class="tab-btn active" data-category="all">
+                All <span class="add-category-btn" data-cat="reading" title="Add book">+</span>
+            </button>
+            <button class="tab-btn" data-category="reading">
+                Favorites <span class="add-category-btn" data-cat="reading" title="Add book to Reading">+</span>
+            </button>
+            <button class="tab-btn" data-category="to-read">
+                To-Read <span class="add-category-btn" data-cat="to-read" title="Add book to To Read">+</span>
+            </button>
+            <button class="tab-btn" data-category="finished">
+                Finished <span class="add-category-btn" data-cat="finished" title="Add book to Finished">+</span>
+            </button>
+            <button class="tab-btn" data-category="dnf">
+                DNF <span class="add-category-btn" data-cat="dnf" title="Add book to DNF">+</span>
+            </button>
+        </nav>
+
+        
+        <!-- Main Shelves Area -->
+        <main class="shelves-wrapper" id="shelves-wrapper">
+        </main>
+    </div>
+
+    <!-- Décor Drawer -->
+    <div class="drawer-overlay" id="decor-overlay"></div>
+    <div class="bottom-sheet" id="decor-drawer">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h3>Add Decoration</h3>
+            <button class="close-sheet-btn" id="close-decor">&times;</button>
+        </div>
+        <p class="sheet-subtitle">Click or drag items onto your shelves</p>
+        <div class="decor-items-grid">
+            <button class="decor-item-option" data-image="image/plant.png"><img src="image/plant.png" alt="plant"> Plant</button>
+            <button class="decor-item-option" data-image="image/pot.png"><img src="image/pot.png" alt="tea pot"> TeaPot</button>
+            <button class="decor-item-option" data-image="image/sand.png"><img src="image/sand.png" alt="Hourglass"> Hourglass</button>
+            <button class="decor-item-option" data-image="image/vase.png"><img src="image/vase.png" alt="Vase"> Vase</button>
+            <button class="decor-item-option" data-image="image/candles.png"><img src="image/candles.png" alt="Candle"> Candles</button>
+            <button class="decor-item-option" data-image="image/shelffood.png"><img src="image/shelffood.png" alt="food"> Food</button>
+            <button class="decor-item-option" data-image="image/catapp.png"><img src="image/catapp.png" alt="cat"> Cat</button>
+            <button class="decor-item-option" data-image="image/dogpic.png"><img src="image/dogpic.png" alt="dog"> Dog</button>
+            <button class="decor-item-option" data-image="image/basket.png"><img src="image/basket.png" alt="basket"> Basket</button>
+            <button class="decor-item-option" data-image="image/light.png"><img src="image/light.png" alt="light"> Light</button>
+        </div>
+    </div>
+
+    <div class="drawer-overlay" id="add-book-overlay"></div>
+    <div class="bottom-sheet large-sheet" id="add-book-sheet">
+        <div class="sheet-handle"></div>
+        <div class="sheet-header">
+            <h3 id="add-book-title">Add to Shelf</h3>
+            <button class="close-sheet-btn" id="close-add-book">&times;</button>
+        </div>
+        <p class="sheet-subtitle" id="add-book-count">0 books available</p>
+        <div class="available-books-list" id="available-books-container">
+           
+        </div>
+    </div>
+
+    <!-- Book Details Popup Sheet -->
+    <div class="drawer-overlay" id="book-details-overlay"></div>
+    <div class="bottom-sheet" id="book-details-sheet">
+        <div class="sheet-handle"></div>
+        <button class="close-sheet-btn absolute-close" id="close-book-details">&times;</button>
+        <div class="book-detail-content">
+            <div class="detail-cover-wrapper">
+                <img id="detail-img" src="" alt="Book Cover">
+            </div>
+            <div class="detail-info">
+                <h2 id="detail-title">Book Title</h2>
+                <p id="detail-author" class="detail-author">Author Name</p>
+                <span id="detail-category-badge" class="category-badge">Reading</span>
+            </div>
+        </div>
+        <div class="detail-actions-section">
+            <label>MOVE TO SHELF</label>
+            <div class="move-shelf-buttons" id="move-shelf-buttons">
+                
+            </div>
+            <button class="remove-library-btn" id="remove-from-library-btn">
+                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                Remove from Library
+            </button>
+        </div>
+    </div>
+   
+  <script src="personalshelf.js"></script>
+</body>
+</html>
