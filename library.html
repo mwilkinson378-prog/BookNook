@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>library</title>
+    <link rel="stylesheet" href="stylesheet/indexcss.css">
+   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400..900;1,400..900&display=swap" rel="stylesheet">
+</head>
+<body class="library-page-body">
+
+<div class="app-layout">
+    <!-- Desktop Navigation Sidebar -->
+     <aside class="desktop-sidebar">
+        <div class="sidebar-top">
+            <a href="#" class="sidebar-brand">
+                <div class="brand-icon-box"><img src="media/navanimation.gif" alt="" class="sidebar-icon-top"></div>
+                <div class="brand-texts">
+                    <h2>Dashboard</h2>
+                    <span>Reading Companion</span>
+                </div>
+            </a>
+             <nav class="sidebar-nav">
+                <a href="home.html" class="sidebar-item">
+                <img src="icon/house.svg" alt="" class="sidebar-icon"> Home
+            </a>
+               <a href="library.html" class="sidebar-item active">
+                <img src="icon/libraryactive.svg" alt="" class="sidebar-icon"> Library
+            </a>
+            <a href="goals.html" class="sidebar-item">
+                <img src="icon/goal.svg" alt="" class="sidebar-icon"> Goals
+            </a>
+            <a href="statistics.html" class="sidebar-item">
+                <img src="icon/stats.svg" alt="" class="sidebar-icon"> Statistics
+            </a>
+            <a href="book-recommendations/recommendation.html" class="sidebar-item">
+                <img src="icon/ai.svg" alt="" class="sidebar-icon"> Ask AI
+            </a>
+             </nav>
+        <div class="sidebar-footer">
+    <a href="index.html" class="sidebar-signout" id="signout-button">
+    <img src="icon/logout.svg" alt="Sign out">
+    <span>Sign Out</span>
+</a>
+</div>
+        </div>
+    </aside>
+   
+    <!-- TABLET SIDEBAR -->
+    <aside class="tablet-sidebar">
+       <nav class="sidebar-nav">
+            <a href="home.html" class="sidebar-item">
+                <img src="icon/house.svg" alt="" class="sidebar-icon"> 
+            </a>
+               <a href="library.html" class="sidebar-item active">
+                <img src="icon/libraryactive.svg" alt="" class="sidebar-icon"> 
+            </a>
+            <a href="goals.html" class="sidebar-item">
+                <img src="icon/goal.svg" alt="" class="sidebar-icon"> 
+            </a>
+            <a href="statistics.html" class="sidebar-item">
+                <img src="icon/stats.svg" alt="" class="sidebar-icon"> 
+            </a>
+              <a href="book-recommendations/recommendation.html" class="sidebar-item">
+                <img src="icon/ai.svg" alt="" class="sidebar-icon"> 
+            </a>
+        </nav>
+        <div class="sidebar-footer">
+         <a href="index.html" class="sidebar-signout" id="signout-button">
+    <img src="icon/logout.svg" alt="Sign out">
+</a>
+    </div>
+    </aside>
+        <!-- Main Content  Wrapper -->
+        <div class="desktop-main-wrapper">
+           <header class="library-header-top">
+    <!-- Back arrow  -->
+    <a href="home.html" class="back-btn" aria-label="Go back">
+        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+    </a>
+
+    <div class="header-titles">
+        <h1 class="library-title">Library</h1>
+        <span class="library-subtitle">My Collection</span>
+    </div>
+
+    <div class="header-actions">
+       <a href="search.html" class="notification-btn">
+    <img class="search-btn-icon" src="icon/search.svg" alt="Search">
+</a>
+    </div>
+</header>
+
+            <main class="main-layout">
+                <div class="categories-wrapper">
+                    <div id="pill-container"></div>
+                </div>
+                
+                <div class="library-header">
+                    <p class="book-count" id="book-count">Book Count: 0</p>
+                </div>
+
+                <div id="library-display"></div>
+            </main>
+        </div>
+
+        <!-- Right Sidebar  -->
+        <aside class="desktop-right-sidebar">
+            <div class="right-widget-section">
+               <div class="right-widget-section">
+    <span class="widget-section-title">CURRENTLY READING</span>
+    <div id="library-currently-reading-container"></div>
+</div>
+            </div>
+
+            <div class="right-widget-section">
+                <span class="widget-section-title">READING STATS</span>
+  <div class="top-stats-row-desktop">
+    <div class="top-stat-card">
+        
+        <span class="top-stat-value" id="library-stat-books">0</span>
+        <span class="top-stat-label">Books finished</span>
+    </div>
+    <div class="top-stat-card">
+        
+        <span class="top-stat-value" id="library-stat-streak">0</span>
+        <span class="top-stat-label">Day streak</span>
+    </div>
+    <div class="top-stat-card">
+       
+        <span class="top-stat-value" id="library-stat-avg">0</span>
+        <span class="top-stat-label">Avg/month</span>
+    </div>
+</div>
+</div>
+
+<div class="right-widget-section">
+    <span class="widget-section-title">TOP AUTHORS</span>
+    <div id="genre-stat-list" class="genre-stat-list">
+    </div>
+
+            <div class="right-widget-section">
+                <span class="widget-section-title">STATUS OVERVIEW</span>
+<div id="status-overview-list" class="status-overview-list">
+    <div class="status-pill-row reading"><span>Reading</span><span>0</span></div>
+    <div class="status-pill-row finished"><span>Finished</span><span>0</span></div>
+    <div class="status-pill-row to-read"><span>To-Read</span><span>0</span></div>
+    <div class="status-pill-row dnf"><span>DNF</span><span>0</span></div>
+</div>
+
+            </div>
+
+    </div>
+        </aside>
+    <!-- MOBILE NAVIGATION -->
+<nav class="mobile-bottom-nav">
+
+    <a href="home.html" class="mobile-nav-item">
+        <img src="icon/house.svg" alt="Home">
+        <span>Home</span>
+    </a>
+    <a href="library.html" class="mobile-nav-item active">
+        <img src="icon/libraryactive.svg" alt="Library">
+        <span>Library</span>
+    </a>
+    <a href="goals.html" class="mobile-nav-item">
+        <img src="icon/goal.svg" alt="goals">
+        <span>Goals</span>
+    </a>
+    <a href="statistics.html" class="mobile-nav-item">
+        <img src="icon/stats.svg" alt="Stats">
+        <span>Stats</span>
+    </a>
+    <a href="book-recommendations/recommendation.html" class="mobile-nav-item">
+        <img src="icon/ai.svg" alt="sidebar-icon">
+        <span>Ask AI</span>
+    </a>
+</nav>
+
+<script src="libraryscript.js"></script>
+</div>
+</body>
+</html>

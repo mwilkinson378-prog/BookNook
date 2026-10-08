@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+ <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Book Recommendations</title>
+ <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=Playfair+Display:ital,wght@0,500;0,600;0,700;1,500;1,600&display=swap" rel="stylesheet" >
+ <link rel="stylesheet" href="recommendation.css">
+</head>
+
+<body>
+
+<!-- HERO-->
+<header class="hero">
+    <div class="hero-decoration hero-decoration-one"></div>
+     <button class="back-btn" onclick="window.location.href='../index.html'">
+    &larr;
+</button>
+     <div class="hero-content">
+    <div class="hero-decoration hero-decoration-two"></div>
+
+        <div class="hero-copy">
+            
+            <div class="eyebrow">
+                BOOK RECOMMENDATIONS
+            </div>
+            <h1>
+                Find your next<em>favorite book.</em>
+            </h1>
+            <p>
+                Tell me what you're in the mood for and I'll help you discover your next read.
+            </p>
+        </div>
+        <div class="hero-book-icon">
+    <img src="../media/bookflip.gif" alt="Stack of books">
+</div>
+    </div>
+
+
+    <!--  AI CHAT -->
+
+    <section class="chat-wrapper">
+        <div id="chatMessages" class="chat-messages" >
+            <div class="message ai-message">
+                <div class="message-icon">✦</div>
+                <div class="message-content-title">
+                    <p>
+                        Hi! I'm your book recommendation assistant.
+                    </p>
+                    <p>
+                        Tell me what you're looking for. You can give me a genre, trope, mood, characters, or even describe another book you loved.
+                    </p>
+                    <div class="suggestion-buttons">
+                        <button
+                            class="suggestion-button" data-prompt="I want a dark fantasy with immersive world-building and high stakes.">
+                            🌙 Dark fantasy
+                        </button>
+
+
+                        <button
+                            class="suggestion-button"
+                            data-prompt="I want a cozy fantasy book with found family, magic, and a comforting atmosphere."
+                        >
+                            🕯️ Cozy fantasy
+                        </button>
+
+
+                        <button
+                            class="suggestion-button"
+                            data-prompt="I want a mystery with an unreliable narrator and lots of twists."
+                        >
+                            🕵️ Mystery
+                        </button>
+
+
+                        <button
+                            class="suggestion-button"
+                            data-prompt="I want a horror novel with high stakes and deep suspense."
+                        >
+                            👻 Horror
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </div>
+
+
+        <!-- INPUT -->
+
+        <div class="input-container"><textarea id="message" rows="1" placeholder="Tell me what you want to read..."></textarea>
+         <button id="askButton" class="send-button" aria-label="Send" >
+                ↑
+            </button>
+        </div>
+        <div class="input-hint">
+            Try describing a genre, trope, mood, or book you already love.
+        </div>
+    </section>
+</header>
+
+<!-- MAIN CONTENT -->
+
+<main class="main-content">
+    <!--RECOMMENDATIONS-->
+
+</main>
+<script src="recommendation.js"></script>
+</body>
+</html>
