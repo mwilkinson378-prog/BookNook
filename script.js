@@ -1106,17 +1106,13 @@ function loadCurrentlyReadingCard() {
     });
 }
 
-const signoutButton =
-    document.getElementById("signout-button");
+document.querySelectorAll(".sidebar-signout").forEach(function (signoutButton) {
+    signoutButton.addEventListener("click", function (event) {
+        event.preventDefault();
 
-if (signoutButton) {
-    signoutButton.addEventListener(
-        "click",
-        function (event) {
-            event.preventDefault();
-            localStorage.removeItem("readingCompanionLoggedIn");
-            localStorage.removeItem("readingCompanionGuest");
-            window.location.href = "index.html";
-        }
-    );
-}
+        localStorage.removeItem("readingCompanionLoggedIn");
+        localStorage.removeItem("readingCompanionGuest");
+
+        window.location.href = "./index.html";
+    });
+});
