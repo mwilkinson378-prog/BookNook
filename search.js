@@ -1,4 +1,4 @@
-const API_KEY = "AIzaSyAJ_yyCfJC39feTd4H06LKUYIAMXoJNBbo";
+const API_KEY = "AIzaSyBe5MToLN3CMiWj5XCFiMVb0yLMb5WmLJg";
 let currentStartIndex = 0;
 let currentQuery = '';
 
