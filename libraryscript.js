@@ -1,10 +1,114 @@
-// --- UNIFIED INITIALIZATION & PAGE LOAD ---
+function isGuestUser() {
+    return sessionStorage.getItem('readingCompanionGuest') === 'true';
+}
+
+function getAppStorage() {
+    return isGuestUser() ? sessionStorage : localStorage;
+}
+
+function getUserData(key, fallback = null) {
+    try {
+        const storage = getAppStorage();
+        const saved = storage.getItem(key);
+
+        if (saved === null) return fallback;
+
+        return JSON.parse(saved);
+    } catch (error) {
+        console.error(`Error reading ${key}:`, error);
+        return fallback;
+    }
+}
+
+function setUserData(key, value) {
+    try {
+        getAppStorage().setItem(key, JSON.stringify(value));
+    } catch (error) {
+        console.error(`Error saving ${key}:`, error);
+    }
+}
+
+function removeUserData(key) {
+    try {
+        getAppStorage().removeItem(key);
+    } catch (error) {
+        console.error(`Error removing ${key}:`, error);
+    }
+}
+
+function hasActiveSession() {
+    return (
+        sessionStorage.getItem('readingCompanionGuest') === 'true' ||
+        localStorage.getItem('readingCompanionLoggedIn') === 'true'
+    );
+}
+
+function clearGuestLibraryData() {
+    const guestKeys = [
+        'myLibrary',
+        'userCategories',
+        'currentlyReading',
+        'readingStreakData',
+        'selectedBook',
+        'readingCompanionUser',
+        'readingCompanionLoggedIn',
+        'readingCompanionGuest'
+    ];
+
+    guestKeys.forEach(key => {
+        sessionStorage.removeItem(key);
+    });
+}
+
+function resetLibraryPageUI() {
+    const bookCount = document.getElementById('book-count');
+    const booksStat = document.getElementById('library-stat-books');
+    const streakStat = document.getElementById('library-stat-streak');
+    const avgStat = document.getElementById('library-stat-avg');
+    const authorContainer = document.getElementById('genre-stat-list');
+    const statusContainer = document.getElementById('status-overview-list');
+    const currentlyReadingContainer = document.getElementById('library-currently-reading-container');
+    const display = document.getElementById('library-display');
+
+    if (bookCount) {
+        bookCount.innerText = 'Book Count: 0';
+    }
+
+    if (booksStat) {
+        booksStat.textContent = '0';
+    }
+
+    if (streakStat) {
+        streakStat.textContent = '0';
+    }
+
+    if (avgStat) {
+        avgStat.textContent = '0.0';
+    }
+
+    if (authorContainer) {
+        authorContainer.innerHTML = `<p style="color: #8A8F87; font-size: 0.85rem; text-align: center; padding: 10px 0;">No author data yet.</p>`;
+    }
+
+    if (statusContainer) {
+        statusContainer.innerHTML = `<p style="color: #687c6d; font-size: 0.85rem; text-align: center; padding: 10px 0;">No status data yet.</p>`;
+    }
+
+    if (currentlyReadingContainer) {
+        currentlyReadingContainer.innerHTML = `<p style="text-align: center; color: #8A8F87; font-size: 0.9rem; font-family: 'DM Sans', sans-serif;">No book currently being read.</p>`;
+    }
+
+    if (display) {
+        display.innerHTML = '';
+    }
+}
+
 document.addEventListener('DOMContentLoaded', () => {
-    // 1. Scanner button setup
     const scanBtn = document.querySelector('.nav-btnscan');
+
     if (scanBtn) {
         scanBtn.addEventListener('click', () => {
-            alert("Opening QR Scanner...");
+            alert('Opening QR Scanner...');
         });
     }
 
@@ -19,6 +123,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (targetCategory) {
         setTimeout(() => {
             const pills = document.querySelectorAll('.pill, .category-pill');
+
             const targetPill = Array.from(pills).find(
                 pill => pill.innerText.trim().toLowerCase() === targetCategory.trim().toLowerCase()
             );
@@ -31,74 +136,105 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 50);
     } else {
         filterLibrary('All');
-        
-        const allPill = document.querySelector('#pill-container .pill, .category-pill[data-category="All"], [onclick*="All"], [onclick*="all"]');
+
+        const allPill = document.querySelector(
+            '#pill-container .pill, .category-pill[data-category="All"], [onclick*="All"], [onclick*="all"]'
+        );
+
         if (allPill) {
-            document.querySelectorAll('.pill, .category-pill').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.pill, .category-pill').forEach(p => {
+                p.classList.remove('active');
+            });
+
             allPill.classList.add('active');
         }
     }
 });
+
 function updateLibraryWidgets() {
-    const library = JSON.parse(localStorage.getItem('myLibrary')) || [];
-    
+    const library = getUserData('myLibrary', []);
+
     const uniqueLibrary = library.filter((book, index, self) =>
-        index === self.findIndex((b) => b.id === book.id)
+        index === self.findIndex(b => b.id === book.id)
     );
 
-    const isDnfOrToRead = (book) => {
+    const isDnfOrToRead = book => {
         let cats = [];
-        if (typeof book.category === 'string') cats.push(book.category.toLowerCase().trim());
-        if (typeof book.shelf === 'string') cats.push(book.shelf.toLowerCase().trim());
-        if (Array.isArray(book.categories)) {
-            book.categories.forEach(c => { if (c) cats.push(String(c).toLowerCase().trim()); });
-        } else if (typeof book.categories === 'string') {
-            book.categories.split(',').forEach(c => { if (c) cats.push(c.toLowerCase().trim()); });
+
+        if (typeof book.category === 'string') {
+            cats.push(book.category.toLowerCase().trim());
         }
+
+        if (typeof book.shelf === 'string') {
+            cats.push(book.shelf.toLowerCase().trim());
+        }
+
+        if (Array.isArray(book.categories)) {
+            book.categories.forEach(c => {
+                if (c) cats.push(String(c).toLowerCase().trim());
+            });
+        } else if (typeof book.categories === 'string') {
+            book.categories.split(',').forEach(c => {
+                if (c) cats.push(c.toLowerCase().trim());
+            });
+        }
+
         return cats.some(c => c === 'dnf' || c === 'to-read' || c === 'tbr');
     };
 
     const activeLibraryBooks = uniqueLibrary.filter(book => !isDnfOrToRead(book));
     const booksFinishedCount = activeLibraryBooks.length;
 
-    const streakData = JSON.parse(localStorage.getItem('readingStreakData')) || { streakCount: 0 };
-    const streakCount = streakData.streakCount;
+    const streakData = getUserData('readingStreakData', { streakCount: 0 });
+    const streakCount = streakData?.streakCount || 0;
 
-    const activeMonths = 12; 
+    const activeMonths = 12;
     const avgPerMonth = (booksFinishedCount / activeMonths).toFixed(1);
 
-    if (document.getElementById('library-stat-books')) {
-        document.getElementById('library-stat-books').textContent = booksFinishedCount;
+    const booksStat = document.getElementById('library-stat-books');
+    const streakStat = document.getElementById('library-stat-streak');
+    const avgStat = document.getElementById('library-stat-avg');
+
+    if (booksStat) {
+        booksStat.textContent = booksFinishedCount;
     }
-    if (document.getElementById('library-stat-streak')) {
-        document.getElementById('library-stat-streak').textContent = streakCount;
+
+    if (streakStat) {
+        streakStat.textContent = streakCount;
     }
-    if (document.getElementById('library-stat-avg')) {
-        document.getElementById('library-stat-avg').textContent = avgPerMonth;
+
+    if (avgStat) {
+        avgStat.textContent = avgPerMonth;
     }
 
     const authorContainer = document.getElementById('genre-stat-list');
+
     if (!authorContainer) return;
 
     let authorCounts = {};
 
     uniqueLibrary.forEach(book => {
-        
         let author = book.author || book.volumeInfo?.authors?.[0];
-        
+
         if (Array.isArray(book.authors) && book.authors.length > 0) {
             author = book.authors[0];
         }
 
         if (!author) return;
+
         const cleanAuthor = String(author).trim();
-        
-        if (cleanAuthor.toLowerCase() === 'unknown author' || cleanAuthor === '') return;
+
+        if (
+            cleanAuthor.toLowerCase() === 'unknown author' ||
+            cleanAuthor === ''
+        ) {
+            return;
+        }
 
         authorCounts[cleanAuthor] = (authorCounts[cleanAuthor] || 0) + 1;
     });
 
-    let sortedAuthors = Object.entries(authorCounts)
+    const sortedAuthors = Object.entries(authorCounts)
         .sort((a, b) => b[1] - a[1])
         .slice(0, 5);
 
@@ -110,7 +246,10 @@ function updateLibraryWidgets() {
     const maxCount = sortedAuthors[0][1];
 
     authorContainer.innerHTML = sortedAuthors.map(([author, count]) => {
-        const percentage = maxCount > 0 ? Math.round((count / maxCount) * 100) : 0;
+        const percentage = maxCount > 0
+            ? Math.round((count / maxCount) * 100)
+            : 0;
+
         return `
             <div class="genre-item">
                 <div class="genre-row"><span>${author}</span><span>${count}</span></div>
@@ -119,30 +258,58 @@ function updateLibraryWidgets() {
         `;
     }).join('');
 }
+
 function updateStatusOverview() {
-    const container = document.getElementById('status-overview-list') || document.querySelector('.status-overview-list');
+    const container =
+        document.getElementById('status-overview-list') ||
+        document.querySelector('.status-overview-list');
+
     if (!container) return;
 
-    const library = JSON.parse(localStorage.getItem('myLibrary')) || [];
-    
-    // Deduplicate books by id
+    const library = getUserData('myLibrary', []);
+
     const uniqueLibrary = library.filter((book, index, self) =>
-        index === self.findIndex((b) => b.id === book.id)
+        index === self.findIndex(b => b.id === book.id)
     );
 
-    let itemsMap = {
-        'Reading': { count: 0, className: 'reading', bgColor: '#d8e2dcb1', textColor: '#2A403A' },     // Rich, distinct soft sage
-        'Finished': { count: 0, className: 'finished', bgColor: '#ece2d0a1', textColor: '#6E5330' },   // Rich editorial gold/tan
-        'To-Read': { count: 0, className: 'to-read', bgColor: '#cfddd599', textColor: '#233832' },     // Clean light teal-sage
-        'DNF': { count: 0, className: 'dnf', bgColor: '#e8d5cea6', textColor: '#6B382F' }              // Warm muted terracotta/earth
+    const itemsMap = {
+        'Reading': {
+            count: 0,
+            className: 'reading',
+            bgColor: '#d8e2dcb1',
+            textColor: '#2A403A'
+        },
+        'Finished': {
+            count: 0,
+            className: 'finished',
+            bgColor: '#ece2d0a1',
+            textColor: '#6E5330'
+        },
+        'To-Read': {
+            count: 0,
+            className: 'to-read',
+            bgColor: '#cfddd599',
+            textColor: '#233832'
+        },
+        'DNF': {
+            count: 0,
+            className: 'dnf',
+            bgColor: '#e8d5cea6',
+            textColor: '#6B382F'
+        }
     };
 
     uniqueLibrary.forEach(book => {
         let bookCategories = [];
-        
-        if (typeof book.category === 'string') bookCategories.push(book.category.trim());
-        if (typeof book.shelf === 'string') bookCategories.push(book.shelf.trim());
-        
+
+        if (typeof book.category === 'string') {
+            bookCategories.push(book.category.trim());
+        }
+
+        if (typeof book.shelf === 'string') {
+            bookCategories.push(book.shelf.trim());
+        }
+
         if (Array.isArray(book.categories)) {
             book.categories.forEach(c => {
                 if (c) bookCategories.push(String(c).trim());
@@ -155,48 +322,70 @@ function updateStatusOverview() {
 
         bookCategories.forEach(c => {
             if (!c || c.toLowerCase() === 'all') return;
+
             const lowerC = c.toLowerCase();
 
-            if (lowerC === 'reading' || lowerC === 'currently reading') {
+            if (
+                lowerC === 'reading' ||
+                lowerC === 'currently reading'
+            ) {
                 itemsMap['Reading'].count++;
-            } else if (lowerC === 'finished' || lowerC === 'read') {
+            } else if (
+                lowerC === 'finished' ||
+                lowerC === 'read'
+            ) {
                 itemsMap['Finished'].count++;
-            } else if (lowerC === 'to-read' || lowerC === 'tbr') {
+            } else if (
+                lowerC === 'to-read' ||
+                lowerC === 'tbr'
+            ) {
                 itemsMap['To-Read'].count++;
             } else if (lowerC === 'dnf') {
                 itemsMap['DNF'].count++;
             } else {
-                
                 if (!itemsMap[c]) {
-                    const cssClass = c.toLowerCase().replace(/[^a-z0-9]/g, '-');
-                    
+                    const cssClass = c
+                        .toLowerCase()
+                        .replace(/[^a-z0-9]/g, '-');
+
                     let hash = 0;
+
                     for (let i = 0; i < c.length; i++) {
                         hash = c.charCodeAt(i) + ((hash << 5) - hash);
                     }
-                    
-                    const dynamicTints = [
-                        { bg: '#e5d9c5a7', text: '#5E4A28' },
-                        { bg: '#d3dfdc9e', text: '#243B36' }, 
-                        { bg: '#e2d3d099', text: '#593833' }  
-                    ];
-                    
-                    const selectedTint = dynamicTints[Math.abs(hash) % dynamicTints.length];
 
-                    itemsMap[c] = { 
-                        count: 0, 
-                        className: cssClass, 
-                        bgColor: selectedTint.bg, 
-                        textColor: selectedTint.text 
+                    const dynamicTints = [
+                        {
+                            bg: '#e5d9c5a7',
+                            text: '#5E4A28'
+                        },
+                        {
+                            bg: '#d3dfdc9e',
+                            text: '#243B36'
+                        },
+                        {
+                            bg: '#e2d3d099',
+                            text: '#593833'
+                        }
+                    ];
+
+                    const selectedTint =
+                        dynamicTints[Math.abs(hash) % dynamicTints.length];
+
+                    itemsMap[c] = {
+                        count: 0,
+                        className: cssClass,
+                        bgColor: selectedTint.bg,
+                        textColor: selectedTint.text
                     };
                 }
+
                 itemsMap[c].count++;
             }
         });
     });
 
-    let topFour = Object.entries(itemsMap)
-        .sort((a, b) => b[1].count - b[1].count) // Fixed sort stability
+    const topFour = Object.entries(itemsMap)
         .sort((a, b) => b[1].count - a[1].count)
         .slice(0, 4);
 
@@ -214,30 +403,49 @@ function updateStatusOverview() {
         `;
     }).join('');
 }
-const defaultCategories = ["All", "Favorites", "To-Read", "Finished", "DNF"];
+
+const defaultCategories = [
+    'All',
+    'Favorites',
+    'To-Read',
+    'Finished',
+    'DNF'
+];
 
 function renderPills() {
     const container = document.getElementById('pill-container');
+
     if (!container) return;
 
-    let categories = JSON.parse(localStorage.getItem('userCategories'));
+    let categories = getUserData('userCategories');
 
     if (!categories || categories.length === 0) {
         categories = defaultCategories;
-        localStorage.setItem('userCategories', JSON.stringify(categories));
+
+        if (hasActiveSession()) {
+            setUserData('userCategories', categories);
+        }
     }
 
-    container.innerHTML = `<button class="pill add-pill" onclick="openCategoryModal()">+ Add</button>`;
+    container.innerHTML =
+        `<button class="pill add-pill" onclick="openCategoryModal()">+ Add</button>`;
 
     categories.forEach(cat => {
         const btn = document.createElement('button');
+
         btn.className = 'pill';
         btn.innerText = cat;
+
         btn.onclick = () => {
-            document.querySelectorAll('.pill, .category-pill').forEach(p => p.classList.remove('active'));
+            document
+                .querySelectorAll('.pill, .category-pill')
+                .forEach(p => p.classList.remove('active'));
+
             btn.classList.add('active');
+
             filterLibrary(cat);
         };
+
         container.appendChild(btn);
     });
 }
@@ -245,9 +453,11 @@ function renderPills() {
 function openCategoryModal() {
     if (document.getElementById('category-modal')) return;
 
-    let categories = JSON.parse(localStorage.getItem('userCategories')) || defaultCategories;
+    let categories =
+        getUserData('userCategories') || defaultCategories;
 
     const modalOverlay = document.createElement('div');
+
     modalOverlay.id = 'category-modal';
     modalOverlay.className = 'modal-overlay';
 
@@ -260,7 +470,11 @@ function openCategoryModal() {
                     ${categories.map((cat, index) => `
                         <li>
                             <span>${cat}</span>
-                            ${defaultCategories.includes(cat) ? '' : `<button class="delete-cat-btn" onclick="deleteCategory(${index})">&times;</button>`}
+                            ${
+                                defaultCategories.includes(cat)
+                                    ? ''
+                                    : `<button class="delete-cat-btn" onclick="deleteCategory(${index})">&times;</button>`
+                            }
                         </li>
                     `).join('')}
                 </ul>
@@ -277,14 +491,20 @@ function openCategoryModal() {
 
 function closeCategoryModal() {
     const modal = document.getElementById('category-modal');
-    if (modal) modal.remove();
+
+    if (modal) {
+        modal.remove();
+    }
 }
 
 function deleteCategory(index) {
-    let categories = JSON.parse(localStorage.getItem('userCategories')) || defaultCategories;
+    let categories =
+        getUserData('userCategories') || defaultCategories;
+
     categories.splice(index, 1);
-    localStorage.setItem('userCategories', JSON.stringify(categories));
-    
+
+    setUserData('userCategories', categories);
+
     closeCategoryModal();
     openCategoryModal();
     renderPills();
@@ -294,234 +514,391 @@ function saveNewCategory() {
     const input = document.getElementById('new-category-input');
     const newCat = input ? input.value.trim() : '';
 
-    if (newCat) {
-        let categories = JSON.parse(localStorage.getItem('userCategories')) || defaultCategories;
-        if (!categories.includes(newCat)) {
-            categories.push(newCat);
-            localStorage.setItem('userCategories', JSON.stringify(categories));
-            renderPills();
-        }
-        closeCategoryModal();
+    if (!newCat) return;
+
+    let categories =
+        getUserData('userCategories') || defaultCategories;
+
+    if (!categories.includes(newCat)) {
+        categories.push(newCat);
+        setUserData('userCategories', categories);
+        renderPills();
     }
+
+    closeCategoryModal();
 }
 
 let currentDisplayLimit = Infinity;
 
 function filterLibrary(category) {
-    const gridContainer = document.querySelector('.library-grid') || document.getElementById('library-display');
-    
+    const gridContainer =
+        document.querySelector('.library-grid') ||
+        document.getElementById('library-display');
+
     if (gridContainer) {
-        gridContainer.style.minHeight = gridContainer.offsetHeight + 'px';
+        gridContainer.style.minHeight =
+            gridContainer.offsetHeight + 'px';
     }
 
-    const library = JSON.parse(localStorage.getItem('myLibrary')) || [];
+    const library = getUserData('myLibrary', []);
     const display = document.getElementById('library-display');
     const countEl = document.getElementById('book-count');
     const viewMoreBtn = document.getElementById('view-more-btn');
-   
+
     if (!display) return;
 
-    const uniqueLibrary = library.map((book, index) => {
-        let cats = book.categories || [];
-        if (typeof cats === 'string') cats = cats.split(',').map(c => c.trim());
-        if (!Array.isArray(cats)) cats = [];
-        
-        if (!cats.map(c => c.toLowerCase()).includes('all')) {
-            cats.push('All');
-        }
-        const bookId = book.id || book.title + '-' + index;
-        
-        return { ...book, id: bookId, categories: cats };
-    }).filter((book, index, self) =>
-        index === self.findIndex((b) => b.id === book.id || (b.title === book.title && b.author === book.author))
-    );
-
-    localStorage.setItem('myLibrary', JSON.stringify(uniqueLibrary));
-   
-    const filtered = (!category || category.toLowerCase() === 'all')
-        ? uniqueLibrary
-        : uniqueLibrary.filter(book => {
+    const uniqueLibrary = library
+        .map((book, index) => {
             let cats = book.categories || [];
-            if (typeof cats === 'string') cats = cats.split(',');
-            return cats.some(cat => cat && cat.trim().toLowerCase() === category.trim().toLowerCase());
-          });
-   
+
+            if (typeof cats === 'string') {
+                cats = cats.split(',').map(c => c.trim());
+            }
+
+            if (!Array.isArray(cats)) {
+                cats = [];
+            }
+
+            if (
+                !cats
+                    .map(c => String(c).toLowerCase())
+                    .includes('all')
+            ) {
+                cats.push('All');
+            }
+
+            const bookId =
+                book.id ||
+                book.title + '-' + index;
+
+            return {
+                ...book,
+                id: bookId,
+                categories: cats
+            };
+        })
+        .filter((book, index, self) =>
+            index === self.findIndex(
+                b =>
+                    b.id === book.id ||
+                    (
+                        b.title === book.title &&
+                        b.author === book.author
+                    )
+            )
+        );
+
+    setUserData('myLibrary', uniqueLibrary);
+
+    const filtered =
+        !category ||
+        category.toLowerCase() === 'all'
+            ? uniqueLibrary
+            : uniqueLibrary.filter(book => {
+                let cats = book.categories || [];
+
+                if (typeof cats === 'string') {
+                    cats = cats.split(',');
+                }
+
+                return cats.some(
+                    cat =>
+                        cat &&
+                        cat.trim().toLowerCase() ===
+                        category.trim().toLowerCase()
+                );
+            });
+
     if (countEl) {
-        countEl.innerText = `Book Count: ${filtered.length}`;
+        countEl.innerText =
+            `Book Count: ${filtered.length}`;
     }
 
-   display.innerHTML = '';
+    display.innerHTML = '';
 
-    filtered.slice(0, currentDisplayLimit).forEach(book => {
-        const div = document.createElement('div');
-        div.className = 'book-item';
-       
-        div.innerHTML = `
-            <div class="book-cardlibrary">
-                <img src="${book.image || book.volumeInfo?.imageLinks?.thumbnail || 'image/replacement.png'}" alt="${book.title}" onerror="this.src='image/replacement.png'">
-            </div>
-            <div class="book-infolibrary">
-                <h4>${book.title}</h4>
-                <p>${book.author || 'Unknown Author'}</p>
-            </div>
-        `;
+    filtered
+        .slice(0, currentDisplayLimit)
+        .forEach(book => {
+            const div = document.createElement('div');
 
-        div.addEventListener('click', () => {
-            localStorage.setItem('selectedBook', JSON.stringify(book));
-            
-            const existingModal = document.getElementById('book-popup-modal');
-            if (existingModal) existingModal.remove();
+            div.className = 'book-item';
 
-            const modalOverlay = document.createElement('div');
-            modalOverlay.id = 'book-popup-modal';
-            modalOverlay.className = 'modal-overlay';
-            
-            modalOverlay.innerHTML = `
-                <div class="customize-wrapper" style="background: #FCF9F5; border-radius: 20px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
-                    <button class="modal-close-btn" onclick="document.getElementById('book-popup-modal').remove()" style="position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.25rem; color: #8A8F87; cursor: pointer;">&times;</button>
-                    <h1>Customize Book</h1>
-
-                    <!-- Book Summary Card -->
-                    <div class="book-summary-card">
-                        <img id="info-book-cover" src="${book.image || book.volumeInfo?.imageLinks?.thumbnail || 'image/replacement.png'}" alt="Book Cover" onerror="this.src='image/replacement.png'">
-                        <div class="book-summary-info">
-                            <h3 id="info-book-title">${book.title || 'Unknown Title'}</h3>
-                            <p id="info-book-author">${book.author || 'Unknown Author'}</p>
-                            <div class="page-badge">
-                                <span>🕮</span> <span id="info-page-count">${book.pageCount || 300} pages</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Add to Shelf Section -->
-                    <div class="section-label">ADD TO SHELF</div>
-                    <div class="pill-grid" id="popup-edit-categories-container"></div>
-
-                    <!-- Personal Rating Section -->
-                    <div class="section-label">YOUR RATING</div>
-                    <div class="rating-box">
-                        <span id="popup-rating-text">${book.rating ? book.rating + ' of 5 Stars' : 'Tap to rate'}</span>
-                        <div class="star-rating" id="popup-star-container">
-                            <span class="star ${book.rating >= 1 ? 'active' : ''}" data-value="1">★</span>
-                            <span class="star ${book.rating >= 2 ? 'active' : ''}" data-value="2">★</span>
-                            <span class="star ${book.rating >= 3 ? 'active' : ''}" data-value="3">★</span>
-                            <span class="star ${book.rating >= 4 ? 'active' : ''}" data-value="4">★</span>
-                            <span class="star ${book.rating >= 5 ? 'active' : ''}" data-value="5">★</span>
-                        </div>
-                    </div>
-
-                    <!-- Daily Reading Duration Section -->
-                    <div class="section-label">DAILY READING DURATION</div>
-                    <div class="pill-grid" id="popup-duration-container">
-                        <button type="button" class="duration-pill ${book.readingTime === '< 30 min' ? 'active' : ''}" onclick="popupSetDuration(this)">&lt; 30 min</button>
-                        <button type="button" class="duration-pill ${book.readingTime === '30–60 min' ? 'active' : ''}" onclick="popupSetDuration(this)">30–60 min</button>
-                        <button type="button" class="duration-pill ${book.readingTime === '1–2 hrs' ? 'active' : ''}" onclick="popupSetDuration(this)">1–2 hrs</button>
-                        <button type="button" class="duration-pill ${book.readingTime === '2+ hrs' ? 'active' : ''}" onclick="popupSetDuration(this)">2+ hrs</button>
-                    </div>
-
-                    <!-- Favourite Quote Section -->
-                    <div class="section-label">FAVOURITE QUOTE</div>
-                    <div class="quote-box">
-                        <div class="quote-input-wrapper">
-                            <span class="quote-icon">“</span>
-                            <textarea id="popup-user-quotes" placeholder="Paste a line that stayed with you...">${book.quotes || ''}</textarea>
-                        </div>
-                    </div>
-
-                    <!-- Save Button -->
-                    <button id="popup-save-book-edits" type="button" class="btn-save">Save Changes</button>
-                    <button id="popup-remove-book-btn" type="button" class="btn-remove">Remove from Library</button>
+            div.innerHTML = `
+                <div class="book-cardlibrary">
+                    <img src="${book.image || book.volumeInfo?.imageLinks?.thumbnail || 'image/replacement.png'}" alt="${book.title}" onerror="this.src='image/replacement.png'">
+                </div>
+                <div class="book-infolibrary">
+                    <h4>${book.title}</h4>
+                    <p>${book.author || 'Unknown Author'}</p>
                 </div>
             `;
 
-            document.body.appendChild(modalOverlay);
+            div.addEventListener('click', () => {
+                setUserData('selectedBook', book);
 
-            // Populate Category Pills inside the Popup
-            const catContainer = document.getElementById('popup-edit-categories-container');
-            const allStoredCategories = JSON.parse(localStorage.getItem('userCategories')) || ["Favorites", "To-Read", "Finished", "Classics", "Non-Fiction", "Gifted"];
-            const currentBookCategories = book.categories || [];
+                const existingModal =
+                    document.getElementById('book-popup-modal');
 
-            allStoredCategories.forEach(cat => {
-                if (cat.toLowerCase() === 'all') return;
-                const button = document.createElement('button');
-                button.type = 'button';
-                button.className = 'shelf-pill';
-                const isAssigned = currentBookCategories.includes(cat);
-                if (isAssigned) {
-                    button.classList.add('active');
-                    button.innerText = `✓ ${cat}`;
-                } else {
-                    button.innerText = cat;
+                if (existingModal) {
+                    existingModal.remove();
                 }
-                button.onclick = () => {
-                    button.classList.toggle('active');
-                    button.innerText = button.classList.contains('active') ? `✓ ${cat}` : cat;
-                };
-                catContainer.appendChild(button);
-            });
 
-            // Star Rating Logic for Popup
-            let popupRating = book.rating || 0;
-            document.querySelectorAll('#popup-star-container .star').forEach(star => {
-                star.onclick = () => {
-                    popupRating = parseInt(star.getAttribute('data-value'));
-                    const stars = document.querySelectorAll('#popup-star-container .star');
-                    stars.forEach((s, idx) => {
-                        if (idx < popupRating) s.classList.add('active');
-                        else s.classList.remove('active');
+                const modalOverlay =
+                    document.createElement('div');
+
+                modalOverlay.id = 'book-popup-modal';
+                modalOverlay.className = 'modal-overlay';
+
+                modalOverlay.innerHTML = `
+                    <div class="customize-wrapper" style="background: #FCF9F5; border-radius: 20px; padding: 24px; position: relative; max-height: 90vh; overflow-y: auto;">
+                        <button class="modal-close-btn" onclick="document.getElementById('book-popup-modal').remove()" style="position: absolute; top: 16px; right: 20px; background: none; border: none; font-size: 1.25rem; color: #8A8F87; cursor: pointer;">&times;</button>
+                        <h1>Customize Book</h1>
+
+                        <div class="book-summary-card">
+                            <img id="info-book-cover" src="${book.image || book.volumeInfo?.imageLinks?.thumbnail || 'image/replacement.png'}" alt="Book Cover" onerror="this.src='image/replacement.png'">
+                            <div class="book-summary-info">
+                                <h3 id="info-book-title">${book.title || 'Unknown Title'}</h3>
+                                <p id="info-book-author">${book.author || 'Unknown Author'}</p>
+                                <div class="page-badge">
+                                    <span>🕮</span>
+                                    <span id="info-page-count">${book.pageCount || 300} pages</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="section-label">ADD TO SHELF</div>
+                        <div class="pill-grid" id="popup-edit-categories-container"></div>
+
+                        <div class="section-label">YOUR RATING</div>
+                        <div class="rating-box">
+                            <span id="popup-rating-text">${book.rating ? book.rating + ' of 5 Stars' : 'Tap to rate'}</span>
+                            <div class="star-rating" id="popup-star-container">
+                                <span class="star ${book.rating >= 1 ? 'active' : ''}" data-value="1">★</span>
+                                <span class="star ${book.rating >= 2 ? 'active' : ''}" data-value="2">★</span>
+                                <span class="star ${book.rating >= 3 ? 'active' : ''}" data-value="3">★</span>
+                                <span class="star ${book.rating >= 4 ? 'active' : ''}" data-value="4">★</span>
+                                <span class="star ${book.rating >= 5 ? 'active' : ''}" data-value="5">★</span>
+                            </div>
+                        </div>
+
+                        <div class="section-label">DAILY READING DURATION</div>
+                        <div class="pill-grid" id="popup-duration-container">
+                            <button type="button" class="duration-pill ${book.readingTime === '< 30 min' ? 'active' : ''}" onclick="popupSetDuration(this)">&lt; 30 min</button>
+                            <button type="button" class="duration-pill ${book.readingTime === '30–60 min' ? 'active' : ''}" onclick="popupSetDuration(this)">30–60 min</button>
+                            <button type="button" class="duration-pill ${book.readingTime === '1–2 hrs' ? 'active' : ''}" onclick="popupSetDuration(this)">1–2 hrs</button>
+                            <button type="button" class="duration-pill ${book.readingTime === '2+ hrs' ? 'active' : ''}" onclick="popupSetDuration(this)">2+ hrs</button>
+                        </div>
+
+                        <div class="section-label">FAVOURITE QUOTE</div>
+                        <div class="quote-box">
+                            <div class="quote-input-wrapper">
+                                <span class="quote-icon">“</span>
+                                <textarea id="popup-user-quotes" placeholder="Paste a line that stayed with you...">${book.quotes || ''}</textarea>
+                            </div>
+                        </div>
+
+                        <button id="popup-save-book-edits" type="button" class="btn-save">Save Changes</button>
+                        <button id="popup-remove-book-btn" type="button" class="btn-remove">Remove from Library</button>
+                    </div>
+                `;
+
+                document.body.appendChild(modalOverlay);
+
+                const catContainer =
+                    document.getElementById(
+                        'popup-edit-categories-container'
+                    );
+
+                const allStoredCategories =
+                    getUserData('userCategories') ||
+                    [
+                        'Favorites',
+                        'To-Read',
+                        'Finished',
+                        'Classics',
+                        'Non-Fiction',
+                        'Gifted'
+                    ];
+
+                const currentBookCategories =
+                    book.categories || [];
+
+                allStoredCategories.forEach(cat => {
+                    if (cat.toLowerCase() === 'all') return;
+
+                    const button =
+                        document.createElement('button');
+
+                    button.type = 'button';
+                    button.className = 'shelf-pill';
+
+                    const isAssigned =
+                        currentBookCategories.includes(cat);
+
+                    if (isAssigned) {
+                        button.classList.add('active');
+                        button.innerText = `✓ ${cat}`;
+                    } else {
+                        button.innerText = cat;
+                    }
+
+                    button.onclick = () => {
+                        button.classList.toggle('active');
+
+                        button.innerText =
+                            button.classList.contains('active')
+                                ? `✓ ${cat}`
+                                : cat;
+                    };
+
+                    catContainer.appendChild(button);
+                });
+
+                let popupRating =
+                    book.rating || 0;
+
+                document
+                    .querySelectorAll(
+                        '#popup-star-container .star'
+                    )
+                    .forEach(star => {
+                        star.onclick = () => {
+                            popupRating =
+                                parseInt(
+                                    star.getAttribute('data-value')
+                                );
+
+                            const stars =
+                                document.querySelectorAll(
+                                    '#popup-star-container .star'
+                                );
+
+                            stars.forEach((s, idx) => {
+                                if (idx < popupRating) {
+                                    s.classList.add('active');
+                                } else {
+                                    s.classList.remove('active');
+                                }
+                            });
+
+                            document.getElementById(
+                                'popup-rating-text'
+                            ).innerText =
+                                `${popupRating} of 5 Stars`;
+                        };
                     });
-                    document.getElementById('popup-rating-text').innerText = `${popupRating} of 5 Stars`;
-                };
-            });
 
-            // Save Handler inside Popup
-            document.getElementById('popup-save-book-edits').onclick = () => {
-                let activeShelves = [];
-                modalOverlay.querySelectorAll('.shelf-pill.active').forEach(p => {
-                    activeShelves.push(p.innerText.replace('✓ ', '').trim());
-                });
+                document.getElementById(
+                    'popup-save-book-edits'
+                ).onclick = () => {
+                    let activeShelves = [];
 
-                let activeDuration = '';
-                modalOverlay.querySelectorAll('.duration-pill.active').forEach(d => {
-                    activeDuration = d.innerText.trim();
-                });
+                    modalOverlay
+                        .querySelectorAll(
+                            '.shelf-pill.active'
+                        )
+                        .forEach(p => {
+                            activeShelves.push(
+                                p.innerText
+                                    .replace('✓ ', '')
+                                    .trim()
+                            );
+                        });
 
-                book.rating = popupRating;
-                book.quotes = document.getElementById('popup-user-quotes').value;
-                book.readingTime = activeDuration;
-                book.categories = activeShelves;
+                    let activeDuration = '';
 
-                let library = JSON.parse(localStorage.getItem('myLibrary')) || [];
-                const index = library.findIndex(item => item.id === book.id);
-                if (index !== -1) library[index] = book;
+                    modalOverlay
+                        .querySelectorAll(
+                            '.duration-pill.active'
+                        )
+                        .forEach(d => {
+                            activeDuration =
+                                d.innerText.trim();
+                        });
 
-                localStorage.setItem('myLibrary', JSON.stringify(library));
-                modalOverlay.remove();
-                filterLibrary(document.querySelector('.pill.active')?.innerText || 'All');
-                updateLibraryWidgets();
-                updateStatusOverview();
-            };
+                    book.rating = popupRating;
+                    book.quotes =
+                        document.getElementById(
+                            'popup-user-quotes'
+                        ).value;
 
-            // Remove Handler inside Popup
-            document.getElementById('popup-remove-book-btn').onclick = () => {
-                if (confirm("Are you sure you want to remove this book from your library?")) {
-                    let library = JSON.parse(localStorage.getItem('myLibrary')) || [];
-                    library = library.filter(item => item.id !== book.id);
-                    localStorage.setItem('myLibrary', JSON.stringify(library));
+                    book.readingTime =
+                        activeDuration;
+
+                    book.categories =
+                        activeShelves;
+
+                    let library =
+                        getUserData('myLibrary', []);
+
+                    const index =
+                        library.findIndex(
+                            item => item.id === book.id
+                        );
+
+                    if (index !== -1) {
+                        library[index] = book;
+                    }
+
+                    setUserData(
+                        'myLibrary',
+                        library
+                    );
+
                     modalOverlay.remove();
-                    filterLibrary('All');
+
+                    filterLibrary(
+                        document.querySelector(
+                            '.pill.active'
+                        )?.innerText || 'All'
+                    );
+
                     updateLibraryWidgets();
                     updateStatusOverview();
-                }
-            };
+                };
+
+                document.getElementById(
+                    'popup-remove-book-btn'
+                ).onclick = () => {
+                    if (
+                        confirm(
+                            'Are you sure you want to remove this book from your library?'
+                        )
+                    ) {
+                        let library =
+                            getUserData(
+                                'myLibrary',
+                                []
+                            );
+
+                        library =
+                            library.filter(
+                                item =>
+                                    item.id !== book.id
+                            );
+
+                        setUserData(
+                            'myLibrary',
+                            library
+                        );
+
+                        modalOverlay.remove();
+
+                        filterLibrary('All');
+                        updateLibraryWidgets();
+                        updateStatusOverview();
+                    }
+                };
+            });
+
+            display.appendChild(div);
         });
 
-        display.appendChild(div);
-    });
+    const addCard =
+        document.createElement('div');
 
-  
-    const addCard = document.createElement('div');
     addCard.className = 'book-item';
+
     addCard.innerHTML = `
         <div class="book-cardlibrary add-card" onclick="window.location.href='search.html'">
             <div class="add-content">
@@ -533,13 +910,16 @@ function filterLibrary(category) {
             <h4>Spacer</h4>
         </div>
     `;
+
     display.appendChild(addCard);
 
-  
     if (viewMoreBtn) {
-        viewMoreBtn.style.display = (currentDisplayLimit >= filtered.length) ? 'none' : 'block';
+        viewMoreBtn.style.display =
+            currentDisplayLimit >= filtered.length
+                ? 'none'
+                : 'block';
     }
-    
+
     setTimeout(() => {
         if (gridContainer) {
             gridContainer.style.minHeight = '';
@@ -548,16 +928,26 @@ function filterLibrary(category) {
 }
 
 function popupSetDuration(button) {
-    button.parentElement.querySelectorAll('.duration-pill').forEach(p => p.classList.remove('active'));
+    button.parentElement
+        .querySelectorAll('.duration-pill')
+        .forEach(p =>
+            p.classList.remove('active')
+        );
+
     button.classList.add('active');
 }
 
 function loadLibraryCurrentlyReading() {
-    const container = document.getElementById('library-currently-reading-container');
+    const container =
+        document.getElementById(
+            'library-currently-reading-container'
+        );
+
     if (!container) return;
 
-    let currentData = JSON.parse(localStorage.getItem('currentlyReading'));
-    
+    const currentData =
+        getUserData('currentlyReading');
+
     if (!currentData) {
         container.innerHTML = `<p style="text-align: center; color: #8A8F87; font-size: 0.9rem; font-family: 'DM Sans', sans-serif;">No book currently being read.</p>`;
         return;
@@ -566,15 +956,35 @@ function loadLibraryCurrentlyReading() {
     container.innerHTML = `
         <div class="reading-now-card">
             <div class="library-reading-card-top">
-               
                 <img src="${currentData.image}" alt="Book Cover" class="library-cover-img">
-                
             </div>
             <div class="reading-now-content">
                 <h4>${currentData.title}</h4>
                 <p>${currentData.author}</p>
             </div>
-            
         </div>
     `;
 }
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.sidebar-signout').forEach(signoutButton => {
+        signoutButton.addEventListener('click', event => {
+            event.preventDefault();
+
+            const wasGuest = isGuestUser();
+
+            if (wasGuest) {
+                clearGuestLibraryData();
+                resetLibraryPageUI();
+            }
+
+            localStorage.removeItem('readingCompanionLoggedIn');
+            localStorage.removeItem('readingCompanionGuest');
+
+            sessionStorage.removeItem('readingCompanionGuest');
+            sessionStorage.removeItem('readingCompanionLoggedIn');
+            sessionStorage.removeItem('readingCompanionUser');
+
+            window.location.href = './index.html';
+        });
+    });
+});
