@@ -577,63 +577,154 @@ document.getElementById('current-cancel-btn')?.addEventListener('click', (e) => 
     if (currentReadModal) currentReadModal.style.display = 'none';
     if (defaultSections) defaultSections.style.display = 'block';
 });
-
 document.getElementById('current-confirm-btn')?.addEventListener('click', () => {
-    const rawBook = localStorage.getItem('selectedBook');
+    const storage = getAuthStorage();
+    const rawBook = storage.getItem('selectedBook');
+
     if (!rawBook) return;
+
     let selectedBookData;
-    try { selectedBookData = JSON.parse(rawBook); } catch (err) { return; }
-    const activePills = document.querySelectorAll('#currentReadModal .category-pill.active');
-    let selectedCategories = Array.from(activePills).map(pill => pill.dataset.category);
-    const progressContainer = document.getElementById('current-progress-container');
-    const isCurrentReadMode = progressContainer && progressContainer.style.display !== 'none';
-    if (selectedCategories.length === 0) {
-        selectedCategories = isCurrentReadMode ? ["Current Read"] : ["To-Read"];
+
+    try {
+        selectedBookData = JSON.parse(rawBook);
+    } catch (err) {
+        return;
     }
-    let lowerCats = selectedCategories.map(cat => (cat ? cat.toLowerCase() : ''));
-    if (!lowerCats.includes('all')) { selectedCategories.unshift("All"); }
-    selectedCategories = Array.from(new Set(selectedCategories));
+
+    const activePills = document.querySelectorAll('#currentReadModal .category-pill.active');
+
+    let selectedCategories = Array.from(activePills).map(
+        pill => pill.dataset.category
+    );
+
+    const progressContainer = document.getElementById('current-progress-container');
+
+    const isCurrentReadMode =
+        progressContainer &&
+        progressContainer.style.display !== 'none';
+
+    if (selectedCategories.length === 0) {
+        selectedCategories = isCurrentReadMode
+            ? ["Current Read"]
+            : ["To-Read"];
+    }
+
+    let lowerCats = selectedCategories.map(
+        cat => cat ? cat.toLowerCase() : ''
+    );
+
+    if (!lowerCats.includes('all')) {
+        selectedCategories.unshift("All");
+    }
+
+    selectedCategories = Array.from(
+        new Set(selectedCategories)
+    );
+
     const info = selectedBookData.volumeInfo || {};
-    const totalPages = parseInt(info.pageCount || selectedBookData.pageCount || 300);
-    const pagesReadInput = document.getElementById('current-pages-read-input');
-    const pagesRead = (isCurrentReadMode && pagesReadInput) ? parseInt(pagesReadInput.value) || 0 : 0;
+
+    const totalPages = parseInt(
+        info.pageCount ||
+        selectedBookData.pageCount ||
+        300
+    );
+
+    const pagesReadInput =
+        document.getElementById('current-pages-read-input');
+
+    const pagesRead =
+        isCurrentReadMode && pagesReadInput
+            ? parseInt(pagesReadInput.value) || 0
+            : 0;
+
     if (isCurrentReadMode && pagesRead > totalPages) {
         alert("Pages read cannot exceed total pages!");
         return;
     }
-    const progressPercent = totalPages > 0 ? Math.round((pagesRead / totalPages) * 100) : 0;
+
+    const progressPercent =
+        totalPages > 0
+            ? Math.round((pagesRead / totalPages) * 100)
+            : 0;
+
     const formattedBook = {
-        id: selectedBookData.id || ('book-' + Date.now()),
-        title: info.title || selectedBookData.title || 'Unknown Title',
-        author: info.authors ? info.authors.join(', ') : (selectedBookData.author || 'Unknown Author'),
-        image: info.imageLinks?.thumbnail || selectedBookData.image || 'image/replacement.png',
-        categories: selectedCategories,
-        totalPages: totalPages,
-        pagesRead: pagesRead,
-        progressPercent: progressPercent,
-        status: isCurrentReadMode ? 'current' : 'library',
-        description: info.description || selectedBookData.description || 'No description available.'
+        id:
+            selectedBookData.id ||
+            ('book-' + Date.now()),
+
+        title:
+            info.title ||
+            selectedBookData.title ||
+            'Unknown Title',
+
+        author:
+            info.authors
+                ? info.authors.join(', ')
+                : (
+                    selectedBookData.author ||
+                    'Unknown Author'
+                ),
+
+        image:
+            info.imageLinks?.thumbnail ||
+            selectedBookData.image ||
+            'image/replacement.png',
+
+        categories:
+            selectedCategories,
+
+        totalPages:
+            totalPages,
+
+        pagesRead:
+            pagesRead,
+
+        progressPercent:
+            progressPercent,
+
+        status:
+            isCurrentReadMode
+                ? 'current'
+                : 'library',
+
+        description:
+            info.description ||
+            selectedBookData.description ||
+            'No description available.'
     };
-  const storage = getAuthStorage();
 
-let myLibrary = JSON.parse(storage.getItem('myLibrary')) || [];
+    let myLibrary =
+        JSON.parse(
+            storage.getItem('myLibrary')
+        ) || [];
 
-myLibrary = myLibrary.filter(b => b.id !== formattedBook.id);
+    myLibrary =
+        myLibrary.filter(
+            book => book.id !== formattedBook.id
+        );
 
-myLibrary.push(formattedBook);
+    myLibrary.push(formattedBook);
 
-storage.setItem('myLibrary', JSON.stringify(myLibrary));
-
-if (isCurrentReadMode) {
     storage.setItem(
-        'currentlyReading',
-        JSON.stringify(formattedBook)
+        'myLibrary',
+        JSON.stringify(myLibrary)
     );
 
-    window.location.href = 'home.html';
-} else {
-    window.location.href = 'library.html';
-}
+    if (isCurrentReadMode) {
+        storage.setItem(
+            'currentlyReading',
+            JSON.stringify(formattedBook)
+        );
+
+        storage.setItem(
+            'selectedBook',
+            JSON.stringify(formattedBook)
+        );
+
+        window.location.href = 'home.html';
+    } else {
+        window.location.href = 'library.html';
+    }
 });
 
 // --- UNIVERSAL LOGOUT CLEAN-UP ---
