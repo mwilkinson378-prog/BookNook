@@ -1,16 +1,27 @@
+
+
+
 function isGuestUser() {
-    return sessionStorage.getItem("readingCompanionGuest") === "true";
+    return (
+        localStorage.getItem("readingCompanionGuest") === "true" ||
+        sessionStorage.getItem("readingCompanionGuest") === "true"
+    );
 }
 
 function getAppStorage() {
-    return isGuestUser() ? sessionStorage : localStorage;
+    if (isGuestUser()) {
+        return sessionStorage;
+    }
+    return localStorage;
 }
 
 function getUserData(key, fallback = null) {
     try {
         const storage = getAppStorage();
         const saved = storage.getItem(key);
-        if (saved === null) return fallback;
+        if (saved === null) {
+            return fallback;
+        }
         return JSON.parse(saved);
     } catch (error) {
         console.error(`Error reading ${key}:`, error);
@@ -20,7 +31,8 @@ function getUserData(key, fallback = null) {
 
 function setUserData(key, value) {
     try {
-        getAppStorage().setItem(key, JSON.stringify(value));
+        const storage = getAppStorage();
+        storage.setItem(key, JSON.stringify(value));
     } catch (error) {
         console.error(`Error saving ${key}:`, error);
     }
@@ -34,27 +46,6 @@ function removeUserData(key) {
     }
 }
 
-function clearGuestData() {
-    const guestKeys = [
-        "myLibrary",
-        "readingStreakData",
-        "currentlyReading",
-        "annualBookGoal",
-        "userActiveGoals",
-        "userActivityLog",
-        "selectedBook",
-        "userCategories"
-    ];
-
-    guestKeys.forEach(function(key) {
-        sessionStorage.removeItem(key);
-        localStorage.removeItem("guest_" + key);
-    });
-
-    sessionStorage.removeItem("readingCompanionGuest");
-    sessionStorage.removeItem("readingCompanionLoggedIn");
-    sessionStorage.removeItem("readingCompanionUser");
-}
 function clearGuestData() {
     const guestKeys = [
         "myLibrary",
@@ -1283,17 +1274,40 @@ function loadCurrentlyReadingCard() {
         }
     });
 }
-document.querySelectorAll(".sidebar-signout").forEach(function(signoutButton) {
-    signoutButton.addEventListener("click", function(event) {
-        event.preventDefault();
 
-        if (isGuestUser()) {
-            clearGuestData();
-        } else {
-            localStorage.removeItem("readingCompanionLoggedIn");
-            localStorage.removeItem("readingCompanionUser");
-        }
+document
+    .querySelectorAll(".sidebar-signout")
+    .forEach(function(signoutButton) {
+        signoutButton.addEventListener(
+            "click",
+            function(event) {
+                event.preventDefault();
 
-        window.location.href = "./index.html";
+                const wasGuest =
+                    isGuestUser();
+
+                if (wasGuest) {
+                    clearGuestData();
+
+                    sessionStorage.removeItem(
+                        "readingCompanionGuest"
+                    );
+
+                    sessionStorage.removeItem(
+                        "readingCompanionLoggedIn"
+                    );
+                }
+
+                localStorage.removeItem(
+                    "readingCompanionLoggedIn"
+                );
+
+                localStorage.removeItem(
+                    "readingCompanionGuest"
+                );
+
+                window.location.href =
+                    "./index.html";
+            }
+        );
     });
-});
